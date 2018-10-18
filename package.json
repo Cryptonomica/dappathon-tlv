@@ -1,0 +1,25 @@
+{
+  "name": "dappathon-tlv",
+  "version": "1.0.0",
+  "description": "",
+  "main": "deploy.LegalEntity.sol.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cryptonomica/dappathon-tlv.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Cryptonomica/dappathon-tlv/issues"
+  },
+  "homepage": "https://github.com/Cryptonomica/dappathon-tlv#readme",
+  "dependencies": {
+    "fs-extra": "^7.0.0",
+    "smart-contract-tools": "^0.3.6",
+    "solc": "^0.4.24",
+    "truffle-contract": "3.0.6"
+  }
+}

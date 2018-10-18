@@ -1,0 +1,49 @@
+<!--<div class="line"></div>-->
+
+<div ng-show="googleUser">
+    Logged in as: <a ng-href="{{googleUser.link}}" target="_blank">{{googleUser.name}}</a>&nbsp;{{googleUser.email}}
+</div>
+
+<div ng-show="web3">
+    You use node:&nbsp {{currentNetwork.node}} || web3.js ver.: {{web3.version.api}}<br>
+    Network ID:&nbsp{{currentNetwork.network_id }}&nbsp(
+    <a ng-href="{{currentNetwork.etherscanLinkPrefix}}" target="_blank">{{currentNetwork.networkName}}</a>
+    )<br>
+
+    <span ng-show="currentBlockNumber >= 0">
+        <span ng-click="refreshCurrentBlockNumber()" title="Click to refresh">Current block number:</span>
+        <a ng-href="{{currentNetwork.etherscanLinkPrefix}}block/{{currentBlockNumber}}" target="_blank">
+            {{currentBlockNumber}}
+        </a>
+        <br>
+    </span>
+
+    <span>
+        <span>Browser session started on block number:</span>
+        <a ng-href="{{currentNetwork.etherscanLinkPrefix}}block/{{sessionStartedOnBlockNumber}}" target="_blank">
+            {{sessionStartedOnBlockNumber}}
+        </a>
+        <br>
+    </span>
+
+    <span ng-hide="accountNotDetectedError">
+    ETH account:
+        <a ng-href="{{currentNetwork.etherscanLinkPrefix}}address/{{web3.eth.defaultAccount}}" target="_blank">
+        {{web3.eth.defaultAccount}}
+        </a>
+        (ETH {{ethBalanceOfDefaultAccount}})
+    </span>
+
+    <span ng-show="accountNotDetectedError">
+    No ETH accounts detected
+    </span>
+
+</div>
+
+<div>
+    <div class="line"></div>
+    {{copyrightOwner}}
+    </a>
+    <br>
+</div>
+

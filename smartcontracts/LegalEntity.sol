@@ -61,11 +61,11 @@ contract LegalEntity {
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#name
     // function name() constant returns (string name)
-    string public name = "TestToken";
+    string public name = "LegalEntity";
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#symbol
     // function symbol() constant returns (string symbol)
-    string public symbol = "TEST";
+    string public symbol = "LE";
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#decimals
     // function decimals() constant returns (uint8 decimals)
@@ -96,10 +96,57 @@ contract LegalEntity {
     /* --- Interaction with other contracts events  */
     event DataSentToAnotherContract(address indexed _from, address indexed _toContract, bytes _extraData);
 
+    /* ------ Shareholders management --- */
+    // TODO: >>>>
+    uint256 public shareholdersCounter = 1;
+    mapping(address => uint256) public shareholderID;
+    mapping(uint256 => address) public shareholderAddress;
+
+    /* ------- Dividends */
+
+    bool public transfersBlocked = false;
+    bool public payDividendsIsRunning = false;
+    uint256 public lastDividendsPaidOn;
+    uint256 dividendsPaymentCounter = 0;
+    uint256 public dividendsPeriod = 3 days; // TODO: change in production
+
+    uint256 sumToPayForOneToken;
+
+    function startDividendsPayments() public {
+        require(!payDividendsIsRunning);
+        require(now.sub(lastDividendsPaidOn) > dividendsPeriod);
+        sumToPayForOneToken = this.balance / totalSupply;
+        payDividendsIsRunning = true;
+        dividendsPaymentCounter = 1;
+    }
+
+    // we could do this in payDividendsToNext(), but to minimize gas consumption in payDividendsToNext()
+    // we will call this function separately;
+    function finishDividendsPayments() public {
+        require(payDividendsIsRunning);
+        require(dividendsPaymentCounter == shareholdersCounter);
+        lastDividendsPaidOn = now;
+        payDividendsIsRunning = false;
+    }
+
+    function payDividendsToNext() public {
+        require(payDividendsIsRunning);
+        address to = shareholderAddress[dividendsPaymentCounter];
+        if (balanceOf[to] > 0) {
+            uint256 sumToPay = sumToPayForOneToken.mul(balanceOf[to]);
+            to.transfer(sumToPay);
+        }
+        dividendsPaymentCounter++;
+    }
+
     /* ---------- Constructor */
     constructor() public {
         balanceOf[msg.sender] = 10000;
         totalSupply = balanceOf[msg.sender];
+        shareholderID[msg.sender] = shareholdersCounter;
+        shareholderAddress[shareholdersCounter] = msg.sender;
+        lastDividendsPaidOn = now;
+        payDividendsIsRunning = false;
     }
 
     /* --- ERC-20 Functions */
@@ -113,6 +160,9 @@ contract LegalEntity {
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#transferfrom
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool){
 
+        // TODO: >>>
+        require(!payDividendsIsRunning);
+
         // Transfers of 0 values MUST be treated as normal transfers and fire the Transfer event (ERC-20)
         require(_value >= 0);
 
@@ -125,7 +175,7 @@ contract LegalEntity {
         // Subtract from the sender
         // balanceOf[_from] = balanceOf[_from] - _value;
         balanceOf[_from] = balanceOf[_from].sub(_value);
-        //
+
         // Add the same to the recipient
         // balanceOf[_to] = balanceOf[_to] + _value;
         balanceOf[_to] = balanceOf[_to].add(_value);
@@ -134,6 +184,13 @@ contract LegalEntity {
         if (_from != msg.sender) {
             // allowance[_from][msg.sender] = allowance[_from][msg.sender] - _value;
             allowance[_from][msg.sender] = allowance[_from][msg.sender].sub(_value);
+        }
+
+        // TODO: >>>
+        if (shareholderID[_to] == 0) {
+            shareholdersCounter++;
+            shareholderID[_to] = shareholdersCounter;
+            shareholderAddress[shareholdersCounter] = _to;
         }
 
         // event

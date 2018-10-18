@@ -1,0 +1,214 @@
+<div class="ui container">
+
+    <div class="ui segment">
+
+        <no-connection-to-node-error></no-connection-to-node-error>
+
+        <a class="ui large yellow ribbon label">version:&nbsp;{{appVersion}}&nbsp;(DEV)</a>
+
+        <a class="tiny ui blue button right" ng-href="{{currentNetwork.etherscanLinkPrefix}}"
+           title="Click to see network information" target="_blank">
+            <i class="ethereum icon"></i>
+            {{currentNetwork.networkName}}
+        </a>
+
+        <div id="errorMessage" ng-show="errorMessage">
+            <div class="ui negative message">
+                <i class="close icon" ng-click="errorMessage=null"></i>
+                <p>{{errorMessage}}</p>
+            </div>
+        </div>
+
+        <h1> Shares represented by tokens </h1>
+
+        <div ng-show="!contract&&!noConnectionToNodeError">
+            This smart contract is not deployed on
+            <a ng-href="{{currentNetwork.etherscanLinkPrefix}}" target="_blank">{{currentNetwork.networkName}}</a>.
+        </div>
+
+
+        <div id="contractData" class="ui segment">
+
+            Smart contract address:
+            <a ng-href="{{currentNetwork.etherscanLinkPrefix}}address/{{contract.address}}" target="_blank"
+               title="Click to see on etherscan">
+                &nbsp;{{contract.address}}
+            </a>
+            <div>
+                Smart contract code:&nbsp;
+                <a href="" title="Click to see contract code">
+                    [click]
+                </a>
+            </div>
+
+            Total tokens in smart contract:&nbsp;&nbsp;{{totalSupply | number}}&nbsp;{{symbol}}
+            <br>
+            Total ETH in smart contract:&nbsp;&nbsp;
+            <span ng-hide="refreshContractEthBalanceIsWorking" ng-click="refresh()" title="Click to refresh">
+                    <a href="">
+                        {{web3.fromWei(contractEthBalance, 'ether')}}
+                    </a>
+            </span>
+            <span ng-show="refreshContractEthBalanceIsWorking"><i class="fa fa-refresh fa-spin fa-fw"></i></span>
+
+        </div>
+
+        <div id="userData" class="ui segment">
+            Your ETH account:
+            <span ng-hide="accountNotDetectedError">
+                <a ng-href="{{currentNetwork.etherscanLinkPrefix}}address/{{web3.eth.defaultAccount}}" target="_blank"
+                   title="Click to see on etherscan">
+                    {{web3.eth.defaultAccount}}
+                </a>
+                (ETH
+                <span ng-hide="getEthBalanceOfDefaultAccountWorking" ng-click="refresh()"
+                      title="Click to refresh"><a href="">{{ethBalanceOfDefaultAccount}}</a></span>
+                <span ng-show="getEthBalanceOfDefaultAccountWorking"><i class="fa fa-refresh fa-spin fa-fw"></i></span>
+                )
+            </span>
+            <span ng-show="accountNotDetectedError" class="italic">
+            &nbsp;ETH account not detected, if you use MetaMask, please login.
+            </span>
+            <br>
+            Tokens on your account:&nbsp;&nbsp;
+            <span ng-hide="getBalanceOfUserWorking"><a href="" ng-click="refresh()" title="Click to refresh">{{balance | number}}</a></span>
+            <span ng-show="getBalanceOfUserWorking"><i class="fa fa-refresh fa-spin fa-fw"></i></span>
+            &nbsp;{{symbol}}<br>
+
+        </div>
+
+        <div id="transfer" class="ui segment">
+
+            <h4>Transfer tokens from your account to another account</h4>
+
+            <form id="transferForm" class="ui form">
+
+                <div class="field">
+                    <label>Number of tokens to transfer:</label>
+                    <div class="ui left labeled input">
+                        <input type="number" id="transferValue"
+                               ng-model="transferValue">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>To address:</label>
+                    <input type="text" id="transferTo" ng-model="transferTo">
+                </div>
+
+                <div class="ui negative message" ng-show="transferError">
+                    <i class="close icon" ng-click="transferError=null"></i>
+                    {{transferError}}
+                </div>
+
+                <div id="transferTxHash" ng-show="transferTxHash" class="ui info message">
+                    <i class="close icon" ng-click="transferTxHash=null"></i>
+                    Transaction:&nbsp;
+                    <a ng-href="{{currentNetwork.etherscanLinkPrefix}}tx/{{transferTxHash}}"
+                       title="click to see on etherscan.io" target="_blank">
+                        {{transferTxHash}}
+                    </a>
+                </div>
+
+                <button class="ui secondary button" type="submit" ng-click="transfer()"
+                        ng-disabled="transferWorking">
+                    <span ng-show="transferWorking">
+                        <i class="fas fa-sync fa-spin"></i>
+                    </span>
+                    Transfer {{transferValue | number}} tokens
+                </button>
+
+            </form>
+
+        </div>
+
+        <div id="checkBalance" class="ui segment">
+
+            <h4>Check token balance of another account</h4>
+
+            <form id="checkBalanceForm" class="ui form">
+
+                <div class="field">
+                    <label>address:</label>
+                    <input type="text" id="addressToCheckTokenBalance" ng-model="addressToCheckTokenBalance">
+                </div>
+
+                <div class="ui negative message" ng-show="checkBalanceError">
+                    <i class="close icon" ng-click="checkBalanceError=null"></i>
+                    {{checkBalanceError}}
+                </div>
+
+                <div class="ui message" ng-show="showCheckBalanceResult">
+                    <i class="close icon" ng-click="showCheckBalanceResult=false"></i>
+                    <a ng-href="{{currentNetwork.etherscanLinkPrefix}}address/{{addressToCheckTokenBalanceResult}}"
+                       target="_blank">
+                        {{addressToCheckTokenBalanceResult}}
+                    </a>
+                    : {{checkBalanceResult | number}} tokens
+                </div>
+
+                <button class="ui button" type="submit" ng-click="checkBalance()"
+                        ng-disabled="checkBalanceWorking">
+                    <span ng-show="checkBalanceWorking"><i class="fa fa-refresh fa-spin fa-fw"></i></span>
+                    Check Balance
+                </button>
+
+            </form>
+
+        </div>
+
+        <div class="line"></div>
+
+        <a ng-href="{{currentNetwork.etherscanLinkPrefix}}address/{{contract.address}}#writeContract" target="_blank">
+            <b>advanced functions</b>
+        </a>
+
+        <div class="line"></div>
+        <h3>
+            Events from smart contract (last {{maxEventsNumber}})
+            <span ng-show="!showEvents" class="ui horizontal label"
+                  ng-click="showEvents=true"
+                  title="Click to show events">Show</span>
+            <span ng-show="showEvents" class="ui horizontal label"
+                  ng-click="showEvents=false"
+                  title="Click to hide events">Hide</span>
+            :
+        </h3>
+
+        <div id="events" class="ui segment" ng-show="showEvents">
+
+            <div ng-repeat="event in events">
+                <!-- <div>{{event}}</div> -->
+                <div>
+                    <strong>
+                        <a ng-href="{{currentNetwork.etherscanLinkPrefix}}/tx/{{event.transactionHash}}"
+                           title="Click to see transaction on etherscan" target="_blank">
+                            {{event.event}}
+                        </a>:
+                    </strong>
+                </div>
+                <div ng-repeat="(key, value) in event.args">
+                    <em>{{key}}</em> : {{value}}
+                </div>
+                (block:
+                <a ng-href="{{currentNetwork.etherscanLinkPrefix}}/block/{{event.blockNumber}}">
+                    {{event.blockNumber}}
+                </a>
+                )
+                <hr>
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+<br>
+<div class="ui container">
+    <div class="ui bottom attached active tab segment">
+        <footer-main></footer-main>
+    </div>
+</div>
+<br>
