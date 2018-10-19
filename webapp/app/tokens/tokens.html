@@ -1,10 +1,13 @@
 <div class="ui container">
 
+    <br>
+
     <div class="ui segment">
 
         <no-connection-to-node-error></no-connection-to-node-error>
 
-        <a class="ui large yellow ribbon label">version:&nbsp;{{appVersion}}&nbsp;(DEV)</a>
+        <a class="ui large red ribbon label">version:&nbsp;{{appVersion}}&nbsp;(DEV)</a>
+        <!--<a class="ui large yellow ribbon label">version:&nbsp;{{appVersion}}&nbsp;(DEV)</a>-->
 
         <a class="tiny ui blue button right" ng-href="{{currentNetwork.etherscanLinkPrefix}}"
            title="Click to see network information" target="_blank">
@@ -19,7 +22,7 @@
             </div>
         </div>
 
-        <h1> Shares represented by tokens </h1>
+        <h1>Cryptonomica: shares represented by tokens </h1>
 
         <div ng-show="!contract&&!noConnectionToNodeError">
             This smart contract is not deployed on

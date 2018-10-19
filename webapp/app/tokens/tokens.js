@@ -21,8 +21,9 @@ controller.controller(controller_name, [
         $log.debug("controller", controller_name, "started");
 
         // >>> start creating contract instance:
-        var contractName = "LegalEntity";
-        var truffleArtifactPath = "/contracts/deployed/" + $rootScope.web3.version.network + "/" + contractName + ".json";
+        var contractName = "Shares";
+
+        var truffleArtifactPath = "smartcontracts/" + contractName + ".json";
 
         if ($rootScope.web3 && $rootScope.web3.version && $rootScope.web3.version.network) {
             $log.debug("starting contract creation");

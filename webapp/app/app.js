@@ -4,7 +4,7 @@ var app = angular.module('app', [
         'ngCookies',
         'ui.router',
         'yaru22.md', // https://github.com/yaru22/angular-md
-        // ---- my:
+        // -----------
         'app.ui.router',
         'app.controllers',
         'app.directives'
@@ -41,7 +41,7 @@ app.run([
         $location,
         $log) {
 
-        $rootScope.appVersion = '1.0.0';
+        $rootScope.appVersion = '1.1.0';
         $log.debug('webapp started,  version: ', $rootScope.appVersion);
 
         /* ==== App data */

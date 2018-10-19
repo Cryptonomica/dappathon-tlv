@@ -9,7 +9,7 @@ var router = angular.module('app.ui.router', []);
 
 router.config(['$urlRouterProvider',
     function ($urlRouterProvider) {
-        $urlRouterProvider.otherwise("/tokens");
+        $urlRouterProvider.otherwise("/");
     }
 ]);
 
@@ -20,16 +20,6 @@ router.config(['$stateProvider',
                 url: '/',
                 controller: 'app.tokens',
                 templateUrl: 'app/tokens/tokens.html'
-            })
-            .state('code', {
-                url: '/code',
-                controller: 'app.code',
-                templateUrl: 'app/code/source.html'
-            })
-            .state('help', {
-                url: '/help',
-                controller: 'app.help',
-                templateUrl: 'app/help/help.html'
             })
     } // end of function ($stateProvider)..
 ]);

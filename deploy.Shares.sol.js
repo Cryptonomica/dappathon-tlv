@@ -13,14 +13,13 @@
 var $sct = require('smart-contract-tools');
 $sct.web3.eth.defaultAccount = "0x0586D1dc9BBE1592B5132ED98f8a7BF2Ed771382";
 console.log("web3.eth.defaultAccount is set to:", $sct.web3.eth.defaultAccount);
-// console.log("balance: ", $sct.web3.fromWei($sct.web3.eth.getBalance($sct.web3.eth.defaultAccount), 'ether'));
 
 var fs = require("fs");
 var solc = require('solc');
 var truffleContract = require("truffle-contract");
 
-var pathToFile = "smartcontracts/LegalEntity.sol";
-var contractName = "LegalEntity";
+var pathToFile = "smartcontracts/Shares.sol";
+var contractName = "Shares";
 
 var source = fs.readFileSync(pathToFile, 'utf8'); // If the encoding option is specified then this function returns a string. Otherwise it returns a buffer.
 console.log("source.length:", source.length);
@@ -39,9 +38,7 @@ solc.loadRemoteVersion(versionString, function (error, compiler) {
                 console.log("compiler.version:", compiler.version());
                 compiledContracts = compiler.compile(source, 1); // setting 1 as second parameter activates the optimiser
                 // compiledContracts = compiler.compile(source, 0); // setting 1 as second parameter activates the optimiser // Error: oversized data
-                // console.log();
                 // console.log(compiledContracts);
-                // console.log();
             } catch (error) {
                 console.log(error);
                 return;

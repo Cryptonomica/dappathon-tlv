@@ -52,7 +52,7 @@ contract tokenRecipient {
     function tokenFallback(address _from, uint256 _value, bytes _extraData) public returns (bool);
 }
 
-contract LegalEntity {
+contract Shares {
 
     // see: https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/BasicToken.sol
     using SafeMath for uint256;
@@ -61,11 +61,11 @@ contract LegalEntity {
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#name
     // function name() constant returns (string name)
-    string public name = "LegalEntity";
+    string public name = "Shares";
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#symbol
     // function symbol() constant returns (string symbol)
-    string public symbol = "LE";
+    string public symbol = "SHA";
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#decimals
     // function decimals() constant returns (uint8 decimals)
@@ -134,7 +134,7 @@ contract LegalEntity {
         address to = shareholderAddress[dividendsPaymentCounter];
         if (balanceOf[to] > 0) {
             uint256 sumToPay = sumToPayForOneToken.mul(balanceOf[to]);
-            to.transfer(sumToPay);
+            to.transfer(sumToPay); // TODO: >> if sending to contract
         }
         dividendsPaymentCounter++;
     }
