@@ -52,7 +52,7 @@ contract tokenRecipient {
     function tokenFallback(address _from, uint256 _value, bytes _extraData) public returns (bool);
 }
 
-contract Shares {
+contract Bonds {
 
     // see: https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/BasicToken.sol
     using SafeMath for uint256;
@@ -61,11 +61,11 @@ contract Shares {
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#name
     // function name() constant returns (string name)
-    string public name = "Shares";
+    string public name = "Bonds";
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#symbol
     // function symbol() constant returns (string symbol)
-    string public symbol = "SHA";
+    string public symbol = "BND";
 
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#decimals
     // function decimals() constant returns (uint8 decimals)
@@ -98,55 +98,52 @@ contract Shares {
 
     /* ------ Shareholders management --- */
     // TODO: >>>>
-    uint256 public shareholdersCounter = 1;
-    mapping(address => uint256) public shareholderID;
-    mapping(uint256 => address) public shareholderAddress;
+    uint256 public holdersCounter = 1;
+    mapping(address => uint256) public holderID;
+    mapping(uint256 => address) public holderAddress;
+    address public owner;
+    /* -------  */
 
-    /* ------- Dividends */
+    /* --- Dividends */
+    event DividendsPaid(address indexed to, uint256 tokensBurned, uint256 sumInWeiPaid);
 
-    bool public transfersBlocked = false;
-    bool public payDividendsIsRunning = false;
-    uint256 public lastDividendsPaidOn;
-    uint256 dividendsPaymentCounter = 0;
-    uint256 public dividendsPeriod = 3 days; // TODO: change in production
+    // valueInTokens : tokens to burn to get dividends
+    function takeDividends(uint256 valueInTokens) public returns (bool) {
 
-    uint256 sumToPayForOneToken;
+        // require(!tokenSaleIsRunning); // <<< we should not allow to burn tokens, if do initial sell via smart contract
+        require(this.balance > 0);
 
-    function startDividendsPayments() public {
-        require(!payDividendsIsRunning);
-        require(now.sub(lastDividendsPaidOn) > dividendsPeriod);
-        sumToPayForOneToken = this.balance / totalSupply;
-        payDividendsIsRunning = true;
-        dividendsPaymentCounter = 1;
+        uint256 sumToPay = (this.balance / totalSupply).mul(valueInTokens);
+
+        msg.sender.transfer(sumToPay);
+        // << save even receiver is smart contract
+
+        totalSupply = totalSupply.sub(valueInTokens);
+        balanceOf[msg.sender] = balanceOf[msg.sender].sub(valueInTokens);
+
+        emit DividendsPaid(msg.sender, valueInTokens, sumToPay);
+
+        return true;
     }
 
-    // we could do this in payDividendsToNext(), but to minimize gas consumption in payDividendsToNext()
-    // we will call this function separately;
-    function finishDividendsPayments() public {
-        require(payDividendsIsRunning);
-        require(dividendsPaymentCounter == shareholdersCounter);
-        lastDividendsPaidOn = now;
-        payDividendsIsRunning = false;
-    }
+    // if all tokens are burned (although this is unlikely)
+    event WithdrawalByOwner(uint256 value, address indexed to, address indexed triggeredBy);
 
-    function payDividendsToNext() public {
-        require(payDividendsIsRunning);
-        address to = shareholderAddress[dividendsPaymentCounter];
-        if (balanceOf[to] > 0) {
-            uint256 sumToPay = sumToPayForOneToken.mul(balanceOf[to]);
-            to.transfer(sumToPay); // TODO: >> if sending to contract
-        }
-        dividendsPaymentCounter++;
+    function withdrawAllByOwner() public {
+        require(msg.sender == owner);
+        // require(totalSupply == 0 && !tokenSaleIsRunning); // < if we sell tokens via smart contract
+        require(totalSupply == 0);
+        uint256 sumToWithdraw = this.balance;
+        owner.transfer(sumToWithdraw);
+        emit WithdrawalByOwner(sumToWithdraw, owner, msg.sender);
     }
 
     /* ---------- Constructor */
+
     constructor() public {
-        balanceOf[msg.sender] = 10000;
-        totalSupply = balanceOf[msg.sender];
-        shareholderID[msg.sender] = shareholdersCounter;
-        shareholderAddress[shareholdersCounter] = msg.sender;
-        lastDividendsPaidOn = now;
-        payDividendsIsRunning = false;
+        owner = msg.sender;
+        balanceOf[owner] = 10000;
+        totalSupply = balanceOf[owner];
     }
 
     /* --- ERC-20 Functions */
@@ -160,8 +157,6 @@ contract Shares {
     // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md#transferfrom
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool){
 
-        // TODO: >>>
-        require(!payDividendsIsRunning);
 
         // Transfers of 0 values MUST be treated as normal transfers and fire the Transfer event (ERC-20)
         require(_value >= 0);
@@ -187,10 +182,10 @@ contract Shares {
         }
 
         // TODO: >>>
-        if (shareholderID[_to] == 0) {
-            shareholdersCounter++;
-            shareholderID[_to] = shareholdersCounter;
-            shareholderAddress[shareholdersCounter] = _to;
+        if (holderID[_to] == 0) {
+            holdersCounter++;
+            holderID[_to] = holdersCounter;
+            holderAddress[holdersCounter] = _to;
         }
 
         // event
